@@ -76,7 +76,7 @@ export default defineConfig({
 ## 実装ステップ（学習の進め方）
 
 ### Step 1: WebGL の最小セットアップ
-- [ ] Step 1: WebGL 最小セットアップ
+- [x] Step 1: WebGL 最小セットアップ
 
 > **目標:** 画面全体を単色で塗りつぶせる状態にする
 
