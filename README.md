@@ -1,7 +1,6 @@
 # shader-website-03
 
 > Shadertoy のエフェクトをスクロール遷移に組み込んだ、かっこいい Web サイトを作る学習プロジェクト。  
-> 参考: [TAO TAJIMA | Filmmaker](https://taotajima.jp/)
 
 ---
 
