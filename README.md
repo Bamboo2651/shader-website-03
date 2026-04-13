@@ -42,59 +42,13 @@ shader-website-03/
 
 ---
 
-## エフェクト一覧と仕組み
-
-### ① ディスプレイスメント（displacement.frag）
-画像の UV 座標をノイズ関数でずらして、波打つような歪みを表現する。  
-`progress`（0.0〜1.0）の値に応じて歪みの強さが変化し、画像が切り替わる。
-
-```
-UV座標 → ノイズで offsetを加算 → texture2D でサンプリング
-```
-
-### ② RGBグリッチ（rgb-glitch.frag）
-R・G・B チャンネルをそれぞれ異なる量だけ UV をずらしてサンプリングする。  
-色ズレによる「デジタルノイズ感」を出す。
-
-```
-R成分：UV + offset_r でサンプリング
-G成分：UV + offset_g でサンプリング
-B成分：UV + offset_b でサンプリング
-→ vec3(r, g, b) で合成
-```
-
-### ③ ノイズフェード（noise-fade.frag）
-Simplex Noise や fbm で生成したノイズ値と `progress` を比較して、  
-ノイズ値 < progress のピクセルだけ次の画像を表示する。
-
-```
-float n = noise(uv);
-if (n < progress) → 次の画像
-else              → 現在の画像
-```
-
-### ④ グリッド分割（grid-split.frag）
-UV を格子状に分割し、各セルごとに異なるタイミングで次の画像へ切り替える。  
-`progress` にセルの位相オフセットを加えることでバラバラに動く。
-
-```
-vec2 cell = floor(uv * gridSize);        // セルのインデックス
-float offset = random(cell) * 0.3;       // セルごとのランダム遅延
-float localProgress = progress + offset; // このセルのprogress
-```
-
----
-
 ## セットアップ
 
-- [ ] セットアップ（Vite + プラグイン導入）
+- [x] セットアップ（Vite + プラグイン導入）
 
 ```bash
 # リポジトリ作成 & 移動
 mkdir shader-website-03 && cd shader-website-03
-
-# Vite プロジェクト初期化
-npm create vite@latest . -- --template vanilla
 
 # 依存パッケージインストール
 npm install
