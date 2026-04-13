@@ -81,7 +81,7 @@ export default defineConfig({
 > **目標:** 画面全体を単色で塗りつぶせる状態にする
 
 ### Step 2: テクスチャを表示する
-- [ ] Step 2: テクスチャ表示
+- [x] Step 2: テクスチャ表示
 
 > **目標:** 画像を canvas に表示できる
 
