@@ -1,5 +1,6 @@
 import vertSrc from './shaders/base.vert'
-import fragSrc from './shaders/base.frag'
+// import fragSrc from './shaders/base.frag'
+import fragSrc from './shaders/displacement.frag'
 
 const canvas = document.getElementById('canvas')
 const gl = canvas.getContext('webgl')
