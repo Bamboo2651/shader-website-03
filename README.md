@@ -96,7 +96,7 @@ export default defineConfig({
 > **目標:** Shadertoy のコードを自分のサイトに移植できる
 
 ### Step 5: エフェクト②〜④を追加する
-- [ ] Step 5: 残り3エフェクト（glitch / noise / grid）
+- [x] Step 5: 残り3エフェクト（glitch / noise / grid）
 
 > **目標:** 4種類のエフェクトを切り替えられる
 
