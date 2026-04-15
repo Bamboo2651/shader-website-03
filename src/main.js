@@ -25,9 +25,9 @@ gl.useProgram(program)
 
 const positions = new Float32Array([
     -1, -1,
-    1, -1,
-    -1, 1,
-    1, 1,
+     1, -1,
+    -1,  1,
+     1,  1,
 ])
 
 const buffer = gl.createBuffer()
@@ -39,7 +39,9 @@ gl.enableVertexAttribArray(loc)
 gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 
-// 画像を読み込んでテクスチャとしてGPUに送る
+// uniformのロケーションを取得（画像読み込み前でもOK）
+const uProgressLoc = gl.getUniformLocation(program, 'uProgress')
+
 const image = new Image()
 image.src = '/images/section1.jpg'
 image.onload = () => {
@@ -50,9 +52,19 @@ image.onload = () => {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
-    // シェーダーのuTextureにテクスチャを渡す
     const uTexture = gl.getUniformLocation(program, 'uTexture')
     gl.uniform1i(uTexture, 0)
 
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+    // アニメーションループ
+    function render(t) {
+        // tはミリ秒なので秒に変換、sin波で0〜1を行き来させる
+        const progress = (Math.sin(t * 0.001) + 1) / 2
+
+        gl.uniform1f(uProgressLoc, progress)
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+
+        requestAnimationFrame(render)
+    }
+
+    requestAnimationFrame(render)
 }
