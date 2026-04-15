@@ -28,9 +28,9 @@ gl.useProgram(program)
 
 const positions = new Float32Array([
     -1, -1,
-    1, -1,
-    -1, 1,
-    1, 1,
+     1, -1,
+    -1,  1,
+     1,  1,
 ])
 
 const buffer = gl.createBuffer()
@@ -42,10 +42,9 @@ gl.enableVertexAttribArray(loc)
 gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 
-const uTextureLoc = gl.getUniformLocation(program, 'uTexture')
+const uTextureLoc  = gl.getUniformLocation(program, 'uTexture')
 const uTexture2Loc = gl.getUniformLocation(program, 'uTexture2')
 const uProgressLoc = gl.getUniformLocation(program, 'uProgress')
-const uTimeLoc = gl.getUniformLocation(program, 'uTime')
 const uResolutionLoc = gl.getUniformLocation(program, 'uResolution')
 
 function loadTexture(src) {
@@ -79,16 +78,15 @@ export function triggerTransition(next) {
 export async function init(imagePaths) {
     textures = await Promise.all(imagePaths.map(loadTexture))
 
-    const startTime = performance.now()
-
     function render() {
-        // アイドル時はスキップ（progress も targetProgress も 0）
+        // アイドル時はスキップ
         if (progress < 0.001 && targetProgress === 0) {
             requestAnimationFrame(render)
             return
         }
 
-        progress += (targetProgress - progress) * 0.05
+        // 0.03に落としてゆっくりに（元は0.05）
+        progress += (targetProgress - progress) * 0.01
 
         if (progress > 0.99) {
             currentIndex = nextIndex

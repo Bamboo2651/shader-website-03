@@ -7,23 +7,58 @@ const imagePaths = [
     '/images/section4.jpg',
 ]
 
-init(imagePaths)
+const TOTAL = imagePaths.length
+let currentIndex = 0
+let isTransitioning = false
 
-const sections = document.querySelectorAll('.section')
+// スクロール蓄積量
+let scrollAccum = 0
+const SCROLL_THRESHOLD = 80  // この px 分蓄積したら次へ進む
 
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const index = parseInt(entry.target.dataset.index)
-            triggerTransition(index)
+function goTo(next) {
+    if (isTransitioning) return
+    if (next < 0 || next >= TOTAL) return
+    if (next === currentIndex) return
 
-            // 全セクションからactiveを外して、現在のだけ付ける
-            sections.forEach(s => s.classList.remove('active'))
-            entry.target.classList.add('active')
-        }
+    isTransitioning = true
+    currentIndex = next
+    triggerTransition(currentIndex)
+
+    // セクションのactive切り替え
+    document.querySelectorAll('.section').forEach((s, i) => {
+        s.classList.toggle('active', i === currentIndex)
     })
-}, {
-    threshold: 0.5
+
+    // トランジション中は連打を防ぐ（0.03イージング × 約90フレーム ≒ 1.5秒）
+    setTimeout(() => { isTransitioning = false }, 1500)
+}
+
+// ホイール
+window.addEventListener('wheel', (e) => {
+    e.preventDefault()
+    scrollAccum += e.deltaY
+
+    if (scrollAccum > SCROLL_THRESHOLD) {
+        scrollAccum = 0
+        goTo(currentIndex + 1)
+    } else if (scrollAccum < -SCROLL_THRESHOLD) {
+        scrollAccum = 0
+        goTo(currentIndex - 1)
+    }
+}, { passive: false })
+
+// タッチ（スマホ対応）
+let touchStartY = 0
+window.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY
+})
+window.addEventListener('touchend', (e) => {
+    const diff = touchStartY - e.changedTouches[0].clientY
+    if (Math.abs(diff) > 40) {
+        goTo(diff > 0 ? currentIndex + 1 : currentIndex - 1)
+    }
 })
 
-sections.forEach(section => observer.observe(section))
+// 初期化
+init(imagePaths)
+document.querySelectorAll('.section')[0]?.classList.add('active')

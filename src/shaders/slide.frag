@@ -23,7 +23,6 @@ void main() {
     vuv1 *= vec2(1.0, uResolution.y / uResolution.x);
     vuv1 += 0.5;
 
-    // uTime を廃止。uProgress だけでエフェクトを駆動する
     float p = uProgress;
 
     float delayValue = p * 7.0 - uv.y * 2.0 + uv.x - 2.0;
@@ -35,8 +34,9 @@ void main() {
     vec2 translateValue1 = vec2(-0.5, 1.0) * translateValue;
     vec2 translateValue2 = vec2(-0.5, 1.0) * (translateValue - 1.0 - acc);
 
-    // uTime 依存の揺れを廃止。progress に連動した揺れのみ残す
-    vec2 xy = vec2(0.0, sin(p * PI) * 0.3) * (tri(p) * 0.5 + tri(delayValue) * 0.5);
+    // uTime依存の揺れをuProgressベースに変更
+    vec2 w = sin(vec2(0.0, p * PI) * vec2(0.0, 0.3) + uv * vec2(0.0, 4.0)) * vec2(0.0, 0.5);
+    vec2 xy = w * (tri(p) * 0.5 + tri(delayValue) * 0.5);
 
     vec2 uv1 = vuv1 + translateValue1 + xy;
     vec2 uv2 = vuv1 + translateValue2 + xy;
