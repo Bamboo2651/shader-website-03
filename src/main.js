@@ -1,10 +1,10 @@
 import { init, setScrollProgress } from './transition.js'
 
 const imagePaths = [
-    '/images/section1.jpg',
-    '/images/section2.jpg',
-    '/images/section3.jpg',
-    '/images/section4.jpg',
+    './section1.jpg',
+    './section2.jpg',
+    './section3.jpg',
+    './section4.jpg',
 ]
 
 let currentIndex = 0;
@@ -20,22 +20,22 @@ function easeInOutCubic(t) {
 function triggerScroll(direction) {
     targetIndex += direction;
     isAnimating = true;
-    
+
     const startProgress = currentIndex;
     const endProgress = targetIndex;
     const duration = 1200; // アニメーションにかける時間(ms)
     let startTime = null;
-    
+
     function animate(time) {
         if (!startTime) startTime = time;
         let elapsed = time - startTime;
         let t = Math.min(elapsed / duration, 1.0);
-        
+
         let easedT = easeInOutCubic(t);
         let currentVal = startProgress + (endProgress - startProgress) * easedT;
-        
+
         setScrollProgress(currentVal);
-        
+
         if (t < 1.0) {
             requestAnimationFrame(animate);
         } else {
@@ -55,7 +55,7 @@ window.addEventListener('wheel', (e) => {
     if (Math.abs(e.deltaY) > 20) {
         const dir = e.deltaY > 0 ? 1 : -1;
         triggerScroll(dir);
-        
+
         // トラックパッドなどの連続発火を抑制
         throttleWheel = true;
         setTimeout(() => { throttleWheel = false; }, 1500);
@@ -73,7 +73,7 @@ window.addEventListener('touchmove', (e) => {
     if (isAnimating) return;
 
     const dy = touchStartY - e.touches[0].clientY;
-    
+
     if (Math.abs(dy) > 30) {
         const dir = dy > 0 ? 1 : -1;
         triggerScroll(dir);
