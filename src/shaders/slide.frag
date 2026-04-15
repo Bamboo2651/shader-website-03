@@ -29,20 +29,17 @@ void main() {
     delayValue = clamp(delayValue, 0.0, 1.0);
 
     vec2 acc = vec2(0.5, 2.0);
-
-    vec2 translateValue = p + delayValue * acc;
+    vec2 translateValue  = p + delayValue * acc;
     vec2 translateValue1 = vec2(-0.5, 1.0) * translateValue;
     vec2 translateValue2 = vec2(-0.5, 1.0) * (translateValue - 1.0 - acc);
 
-    // uTime依存の揺れをuProgressベースに変更
-    vec2 w = sin(vec2(0.0, p * PI) * vec2(0.0, 0.3) + uv * vec2(0.0, 4.0)) * vec2(0.0, 0.5);
+    vec2 w  = sin(vec2(0.0, p * PI) * 0.3 + uv * vec2(0.0, 4.0)) * vec2(0.0, 0.5);
     vec2 xy = w * (tri(p) * 0.5 + tri(delayValue) * 0.5);
 
     vec2 uv1 = vuv1 + translateValue1 + xy;
     vec2 uv2 = vuv1 + translateValue2 + xy;
 
-    vec4 t0 = texture2D(uTexture, mirror(uv1));
-    vec4 t1 = texture2D(uTexture2, mirror(uv2));
-
-    gl_FragColor = mix(t0, t1, delayValue);
+    gl_FragColor = mix(texture2D(uTexture, mirror(uv1)),
+                        texture2D(uTexture2, mirror(uv2)),
+                        delayValue);
 }

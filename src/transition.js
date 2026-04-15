@@ -1,113 +1,103 @@
-import vertSrc from './shaders/base.vert'
-import fragSrc from './shaders/slide.frag'
+import vertSrc  from './shaders/base.vert'
+import fragSrc  from './shaders/slide.frag'
 
 const canvas = document.getElementById('canvas')
-const gl = canvas.getContext('webgl')
+const gl     = canvas.getContext('webgl')
 
-canvas.width = window.innerWidth
+canvas.width  = window.innerWidth
 canvas.height = window.innerHeight
 gl.viewport(0, 0, canvas.width, canvas.height)
 
 gl.enable(gl.BLEND)
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-function createShader(type, source) {
-    const shader = gl.createShader(type)
-    gl.shaderSource(shader, source)
-    gl.compileShader(shader)
-    return shader
+function createShader(type, src) {
+    const s = gl.createShader(type)
+    gl.shaderSource(s, src)
+    gl.compileShader(s)
+    return s
 }
 
-const vert = createShader(gl.VERTEX_SHADER, vertSrc)
-const frag = createShader(gl.FRAGMENT_SHADER, fragSrc)
 const program = gl.createProgram()
-gl.attachShader(program, vert)
-gl.attachShader(program, frag)
+gl.attachShader(program, createShader(gl.VERTEX_SHADER,   vertSrc))
+gl.attachShader(program, createShader(gl.FRAGMENT_SHADER, fragSrc))
 gl.linkProgram(program)
 gl.useProgram(program)
 
-const positions = new Float32Array([
-    -1, -1,
-     1, -1,
-    -1,  1,
-     1,  1,
-])
+const buf = gl.createBuffer()
+gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW)
 
-const buffer = gl.createBuffer()
-gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
-gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW)
-
-const loc = gl.getAttribLocation(program, 'position')
-gl.enableVertexAttribArray(loc)
-gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+const posLoc = gl.getAttribLocation(program, 'position')
+gl.enableVertexAttribArray(posLoc)
+gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0)
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 
-const uTextureLoc  = gl.getUniformLocation(program, 'uTexture')
-const uTexture2Loc = gl.getUniformLocation(program, 'uTexture2')
-const uProgressLoc = gl.getUniformLocation(program, 'uProgress')
+const uTextureLoc    = gl.getUniformLocation(program, 'uTexture')
+const uTexture2Loc   = gl.getUniformLocation(program, 'uTexture2')
+const uProgressLoc   = gl.getUniformLocation(program, 'uProgress')
 const uResolutionLoc = gl.getUniformLocation(program, 'uResolution')
 
 function loadTexture(src) {
     return new Promise((resolve) => {
-        const image = new Image()
-        image.src = src
-        image.onload = () => {
-            const texture = gl.createTexture()
-            gl.bindTexture(gl.TEXTURE_2D, texture)
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
+        const img = new Image()
+        img.src = src
+        img.onload = () => {
+            const tex = gl.createTexture()
+            gl.bindTexture(gl.TEXTURE_2D, tex)
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-            resolve(texture)
+            resolve(tex)
         }
     })
 }
 
 let textures = []
-let currentIndex = 0
-let nextIndex = 1
-let progress = 0
-let targetProgress = 0
 
-export function triggerTransition(next) {
-    nextIndex = next
-    progress = 0
-    targetProgress = 1
+// scrollProgress の「生の値」と「イージング後の値」を別管理
+let rawProgress      = 0   // setScrollProgress() から受け取る値
+let smoothProgress   = 0   // 整数にスナップしながら追従する値
+
+export function setScrollProgress(val) {
+    rawProgress = val
 }
 
 export async function init(imagePaths) {
     textures = await Promise.all(imagePaths.map(loadTexture))
+    render()
+}
 
-    function render() {
-        // アイドル時はスキップ
-        if (progress < 0.001 && targetProgress === 0) {
-            requestAnimationFrame(render)
-            return
-        }
+function render() {
+    // rawProgressに向かって滑らかに追従
+    smoothProgress += (rawProgress - smoothProgress) * 0.05
 
-        // 0.03に落としてゆっくりに（元は0.05）
-        progress += (targetProgress - progress) * 0.01
-
-        if (progress > 0.99) {
-            currentIndex = nextIndex
-            progress = 0
-            targetProgress = 0
-        }
-
-        gl.activeTexture(gl.TEXTURE0)
-        gl.bindTexture(gl.TEXTURE_2D, textures[currentIndex])
-        gl.uniform1i(uTextureLoc, 0)
-
-        gl.activeTexture(gl.TEXTURE1)
-        gl.bindTexture(gl.TEXTURE_2D, textures[nextIndex])
-        gl.uniform1i(uTexture2Loc, 1)
-
-        gl.uniform1f(uProgressLoc, progress)
-        gl.uniform2f(uResolutionLoc, canvas.width, canvas.height)
-
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
-        requestAnimationFrame(render)
+    // 手を離したとき（rawがほぼ整数に近い）だけスナップを効かせる
+    const nearest = Math.round(rawProgress)
+    const distToNearest = Math.abs(rawProgress - nearest)
+    
+    if (distToNearest < 0.3) {
+        smoothProgress += (nearest - smoothProgress) * 0.06
     }
 
-    render()
+    // 範囲クランプ
+    smoothProgress = Math.max(0, Math.min(textures.length - 1, smoothProgress))
+
+    const idx = Math.min(Math.floor(smoothProgress), textures.length - 2)
+    const slideProgress = Math.max(0, Math.min(1, smoothProgress - idx))
+
+    gl.activeTexture(gl.TEXTURE0)
+    gl.bindTexture(gl.TEXTURE_2D, textures[idx])
+    gl.uniform1i(uTextureLoc, 0)
+
+    gl.activeTexture(gl.TEXTURE1)
+    gl.bindTexture(gl.TEXTURE_2D, textures[idx + 1])
+    gl.uniform1i(uTexture2Loc, 1)
+
+    gl.uniform1f(uProgressLoc,   slideProgress)
+    gl.uniform2f(uResolutionLoc, canvas.width, canvas.height)
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+    requestAnimationFrame(render)
 }
