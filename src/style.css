@@ -7,6 +7,7 @@
 body {
     background: #000;
     color: #fff;
+    overflow: hidden; /* スクロールバー非表示 */
 }
 
 canvas {
@@ -15,55 +16,129 @@ canvas {
     left: 0;
     width: 100vw;
     height: 100vh;
+    z-index: 0;
 }
 
 .sections {
     position: relative;
     z-index: 1;
+    pointer-events: none; /* コンテンツの邪魔にならないようにする */
 }
 
 .section {
+    position: absolute; /* セクションを重ねて配置しフェードインさせる */
+    top: 0;
+    left: 0;
+    width: 100vw;
     height: 100vh;
     display: flex;
     align-items: center;
     padding: 0 10vw;
+    opacity: 0;
+    visibility: hidden;
+    transition: visibility 0s 0.8s; /* フェードアウト後にhiddenにする */
 }
 
-/* フェードイン前の状態 */
+.section.active {
+    opacity: 1;
+    visibility: visible;
+    transition: visibility 0s 0s;
+}
+
+/* --- コンテンツアニメーション (Staggered Animation) --- */
 .section-content {
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.9s ease, transform 0.9s ease;
+    transform: translateY(40px);
+    transition: opacity 0s, transform 0s;
+    /* transition delayは初期状態 */
 }
 
-/* .active が付いたらフェードイン */
+.label, h2, p {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* active時のずらしフェードイン */
 .section.active .section-content {
     opacity: 1;
     transform: translateY(0);
 }
 
+.section.active .label {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.1s;
+}
+
+.section.active h2 {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.2s;
+}
+
+.section.active p {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.3s;
+}
+
+/* --- タイポグラフィ --- */
 .label {
     display: block;
     font-family: 'Cormorant Garamond', serif;
-    font-size: 0.75rem;
-    letter-spacing: 0.3em;
-    color: rgba(255, 255, 255, 0.4);
-    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    letter-spacing: 0.4em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
 }
 
 h2 {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-size: clamp(3rem, 7vw, 6rem);
     font-weight: 300;
     letter-spacing: 0.05em;
     line-height: 1.1;
     margin-bottom: 1.2rem;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* 視認性UP */
 }
 
 p {
     font-family: 'Noto Sans JP', sans-serif;
-    font-size: 0.85rem;
+    font-size: 1rem;
     font-weight: 300;
     letter-spacing: 0.15em;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.8;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
+
+/* --- インジケーター --- */
+.indicators {
+    position: fixed;
+    right: 4vw;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+}
+
+.indicator {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transition: background-color 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s ease;
+    cursor: pointer;
+}
+
+.indicator.active {
+    background-color: rgba(255, 255, 255, 1);
+    transform: scale(1.5);
+    height: 24px;
+    border-radius: 10px;
+}

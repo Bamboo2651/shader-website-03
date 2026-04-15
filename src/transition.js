@@ -38,6 +38,7 @@ const uTexture2Loc   = gl.getUniformLocation(program, 'uTexture2')
 const uProgressLoc   = gl.getUniformLocation(program, 'uProgress')
 const uResolutionLoc = gl.getUniformLocation(program, 'uResolution')
 const uTimeLoc       = gl.getUniformLocation(program, 'uTime') // ◀ 追加
+const uEffectIndexLoc= gl.getUniformLocation(program, 'uEffectIndex') // ◀ エフェクト番号用
 
 function loadTexture(src) {
     return new Promise((resolve) => {
@@ -71,37 +72,50 @@ export async function init(imagePaths) {
 }
 
 function render() {
-    smoothProgress += (rawProgress - smoothProgress) * 0.05
-    const nearest = Math.round(rawProgress)
-    const distToNearest = Math.abs(rawProgress - nearest)
+    smoothProgress = rawProgress;
+    const nearest = Math.round(rawProgress);
+    const floorProgress = Math.floor(smoothProgress)
+    const slideProgress = smoothProgress - floorProgress
     
-    if (distToNearest < 0.3) {
-        smoothProgress += (nearest - smoothProgress) * 0.06
-    }
-    smoothProgress = Math.max(0, Math.min(textures.length - 1, smoothProgress))
+    // 現在のテクスチャインデックス (マイナス対応のモジュロ)
+    const maxIdx = textures.length
+    const idx0 = ((floorProgress % maxIdx) + maxIdx) % maxIdx
+    const idx1 = ((idx0 + 1) % maxIdx)
+    
+    // uEffectIndex を計算 (トランジションの種類は、出発元のインデックスに依存する)
+    const effectIndex = idx0
 
-    const idx = Math.min(Math.floor(smoothProgress), textures.length - 2)
-    const slideProgress = Math.max(0, Math.min(1, smoothProgress - idx))
-
-    // ◀ 追加: HTMLのテキストをスクロールに合わせて表示させる
+    // HTMLのテキストをスクロールに合わせて表示させる
+    const nearestIdx = ((nearest % maxIdx) + maxIdx) % maxIdx
     const sections = document.querySelectorAll('.section');
     sections.forEach((sec, i) => {
-        if (i === nearest) {
+        if (i === nearestIdx) {
             sec.classList.add('active');
         } else {
             sec.classList.remove('active');
         }
     });
 
+    // インジケーター(ドット)の更新がある場合のため
+    const indicators = document.querySelectorAll('.indicator');
+    indicators.forEach((ind, i) => {
+        if (i === nearestIdx) {
+            ind.classList.add('active');
+        } else {
+            ind.classList.remove('active');
+        }
+    });
+
     gl.activeTexture(gl.TEXTURE0)
-    gl.bindTexture(gl.TEXTURE_2D, textures[idx])
+    gl.bindTexture(gl.TEXTURE_2D, textures[idx0])
     gl.uniform1i(uTextureLoc, 0)
 
     gl.activeTexture(gl.TEXTURE1)
-    gl.bindTexture(gl.TEXTURE_2D, textures[idx + 1])
+    gl.bindTexture(gl.TEXTURE_2D, textures[idx1])
     gl.uniform1i(uTexture2Loc, 1)
 
     gl.uniform1f(uProgressLoc, slideProgress)
+    gl.uniform1i(uEffectIndexLoc, effectIndex)
     gl.uniform2f(uResolutionLoc, canvas.width, canvas.height)
     
     // ◀ 追加: 時間を秒単位でシェーダーに送る
