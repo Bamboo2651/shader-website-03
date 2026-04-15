@@ -28,9 +28,9 @@ gl.useProgram(program)
 
 const positions = new Float32Array([
     -1, -1,
-     1, -1,
-    -1,  1,
-     1,  1,
+    1, -1,
+    -1, 1,
+    1, 1,
 ])
 
 const buffer = gl.createBuffer()
@@ -82,29 +82,29 @@ export async function init(imagePaths) {
     const startTime = performance.now()
 
     function render() {
-        const uTime = (performance.now() - startTime) / 1000
+        // アイドル時はスキップ（progress も targetProgress も 0）
+        if (progress < 0.001 && targetProgress === 0) {
+            requestAnimationFrame(render)
+            return
+        }
 
         progress += (targetProgress - progress) * 0.05
 
-        // progressが1に近づいたら現在のインデックスを更新
         if (progress > 0.99) {
             currentIndex = nextIndex
             progress = 0
             targetProgress = 0
         }
 
-        // テクスチャ0（現在）
         gl.activeTexture(gl.TEXTURE0)
         gl.bindTexture(gl.TEXTURE_2D, textures[currentIndex])
         gl.uniform1i(uTextureLoc, 0)
 
-        // テクスチャ1（次）
         gl.activeTexture(gl.TEXTURE1)
         gl.bindTexture(gl.TEXTURE_2D, textures[nextIndex])
         gl.uniform1i(uTexture2Loc, 1)
 
         gl.uniform1f(uProgressLoc, progress)
-        gl.uniform1f(uTimeLoc, uTime)
         gl.uniform2f(uResolutionLoc, canvas.width, canvas.height)
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
