@@ -1,10 +1,10 @@
 import { init, setScrollProgress } from './transition.js'
 
 const imagePaths = [
-    './section1.jpg',
-    './section2.jpg',
-    './section3.jpg',
-    './section4.jpg',
+    './images/section1.jpg',
+    './images/section2.jpg',
+    './images/section3.jpg',
+    './images/section4.jpg',
 ]
 
 let currentIndex = 0;
