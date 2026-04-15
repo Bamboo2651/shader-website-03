@@ -37,6 +37,7 @@ const uTextureLoc    = gl.getUniformLocation(program, 'uTexture')
 const uTexture2Loc   = gl.getUniformLocation(program, 'uTexture2')
 const uProgressLoc   = gl.getUniformLocation(program, 'uProgress')
 const uResolutionLoc = gl.getUniformLocation(program, 'uResolution')
+const uTimeLoc       = gl.getUniformLocation(program, 'uTime') // ◀ 追加
 
 function loadTexture(src) {
     return new Promise((resolve) => {
@@ -70,22 +71,27 @@ export async function init(imagePaths) {
 }
 
 function render() {
-    // rawProgressに向かって滑らかに追従
     smoothProgress += (rawProgress - smoothProgress) * 0.05
-
-    // 手を離したとき（rawがほぼ整数に近い）だけスナップを効かせる
     const nearest = Math.round(rawProgress)
     const distToNearest = Math.abs(rawProgress - nearest)
     
     if (distToNearest < 0.3) {
         smoothProgress += (nearest - smoothProgress) * 0.06
     }
-
-    // 範囲クランプ
     smoothProgress = Math.max(0, Math.min(textures.length - 1, smoothProgress))
 
     const idx = Math.min(Math.floor(smoothProgress), textures.length - 2)
     const slideProgress = Math.max(0, Math.min(1, smoothProgress - idx))
+
+    // ◀ 追加: HTMLのテキストをスクロールに合わせて表示させる
+    const sections = document.querySelectorAll('.section');
+    sections.forEach((sec, i) => {
+        if (i === nearest) {
+            sec.classList.add('active');
+        } else {
+            sec.classList.remove('active');
+        }
+    });
 
     gl.activeTexture(gl.TEXTURE0)
     gl.bindTexture(gl.TEXTURE_2D, textures[idx])
@@ -95,8 +101,11 @@ function render() {
     gl.bindTexture(gl.TEXTURE_2D, textures[idx + 1])
     gl.uniform1i(uTexture2Loc, 1)
 
-    gl.uniform1f(uProgressLoc,   slideProgress)
+    gl.uniform1f(uProgressLoc, slideProgress)
     gl.uniform2f(uResolutionLoc, canvas.width, canvas.height)
+    
+    // ◀ 追加: 時間を秒単位でシェーダーに送る
+    gl.uniform1f(uTimeLoc, performance.now() / 1000.0)
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
     requestAnimationFrame(render)

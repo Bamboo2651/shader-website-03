@@ -14,7 +14,7 @@ let scrollProgress = 0   // 0.0〜(TOTAL-1).0 の連続値
 window.addEventListener('wheel', (e) => {
     e.preventDefault()
     // deltaY をそのまま加算。感度は divisor で調整
-    scrollProgress += e.deltaY / 600
+    scrollProgress += e.deltaY / 1000
     scrollProgress = Math.max(0, Math.min(TOTAL - 1, scrollProgress))
     setScrollProgress(scrollProgress)
 }, { passive: false })
