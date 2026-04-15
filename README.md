@@ -86,7 +86,7 @@ export default defineConfig({
 > **目標:** 画像を canvas に表示できる
 
 ### Step 3: `progress` uniform を作る
-- [ ] Step 3: progress uniform
+- [x] Step 3: progress uniform
 
 > **目標:** JS ↔ GLSL の橋渡しを理解する
 
