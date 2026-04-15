@@ -1,5 +1,5 @@
 import vertSrc from './shaders/base.vert'
-import fragSrc from './shaders/displacement.frag'
+import fragSrc from './shaders/slide.frag'
 
 const canvas = document.getElementById('canvas')
 const gl = canvas.getContext('webgl')
@@ -8,7 +8,6 @@ canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 gl.viewport(0, 0, canvas.width, canvas.height)
 
-// アルファブレンドを有効化（noise-fadeのalphaを反映するため）
 gl.enable(gl.BLEND)
 gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
@@ -29,9 +28,9 @@ gl.useProgram(program)
 
 const positions = new Float32Array([
     -1, -1,
-    1, -1,
-    -1, 1,
-    1, 1,
+     1, -1,
+    -1,  1,
+     1,  1,
 ])
 
 const buffer = gl.createBuffer()
@@ -44,9 +43,11 @@ gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 
 const uTextureLoc = gl.getUniformLocation(program, 'uTexture')
+const uTexture2Loc = gl.getUniformLocation(program, 'uTexture2')
 const uProgressLoc = gl.getUniformLocation(program, 'uProgress')
+const uTimeLoc = gl.getUniformLocation(program, 'uTime')
+const uResolutionLoc = gl.getUniformLocation(program, 'uResolution')
 
-// テクスチャを画像URLから生成する関数
 function loadTexture(src) {
     return new Promise((resolve) => {
         const image = new Image()
@@ -65,30 +66,46 @@ function loadTexture(src) {
 
 let textures = []
 let currentIndex = 0
+let nextIndex = 1
 let progress = 0
 let targetProgress = 0
 
-// 外部から呼ばれる：セクション切り替えのトリガー
-export function triggerTransition(nextIndex) {
-    currentIndex = nextIndex
-    targetProgress = 0
+export function triggerTransition(next) {
+    nextIndex = next
     progress = 0
     targetProgress = 1
 }
 
 export async function init(imagePaths) {
-    // 全画像を事前にロード
     textures = await Promise.all(imagePaths.map(loadTexture))
 
+    const startTime = performance.now()
+
     function render() {
-        // なめらかにtargetに近づく
+        const uTime = (performance.now() - startTime) / 1000
+
         progress += (targetProgress - progress) * 0.05
 
-        // 現在のテクスチャをセット
+        // progressが1に近づいたら現在のインデックスを更新
+        if (progress > 0.99) {
+            currentIndex = nextIndex
+            progress = 0
+            targetProgress = 0
+        }
+
+        // テクスチャ0（現在）
         gl.activeTexture(gl.TEXTURE0)
         gl.bindTexture(gl.TEXTURE_2D, textures[currentIndex])
         gl.uniform1i(uTextureLoc, 0)
+
+        // テクスチャ1（次）
+        gl.activeTexture(gl.TEXTURE1)
+        gl.bindTexture(gl.TEXTURE_2D, textures[nextIndex])
+        gl.uniform1i(uTexture2Loc, 1)
+
         gl.uniform1f(uProgressLoc, progress)
+        gl.uniform1f(uTimeLoc, uTime)
+        gl.uniform2f(uResolutionLoc, canvas.width, canvas.height)
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
         requestAnimationFrame(render)
