@@ -1,5 +1,5 @@
-import vertSrc  from './shaders/base.vert'
-import fragSrc  from './shaders/slide.frag'
+import vertSrc  from './shaders/base.vert?raw'
+import fragSrc  from './shaders/slide.frag?raw'
 
 const canvas = document.getElementById('canvas')
 const gl     = canvas.getContext('webgl')
