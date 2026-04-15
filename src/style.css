@@ -4,6 +4,11 @@
     box-sizing: border-box;
 }
 
+body {
+    background: #000;
+    color: #fff;
+}
+
 canvas {
     position: fixed;
     top: 0;
@@ -19,4 +24,46 @@ canvas {
 
 .section {
     height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 0 10vw;
+}
+
+/* フェードイン前の状態 */
+.section-content {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+}
+
+/* .active が付いたらフェードイン */
+.section.active .section-content {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.label {
+    display: block;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+    margin-bottom: 1.2rem;
+}
+
+p {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.6);
 }

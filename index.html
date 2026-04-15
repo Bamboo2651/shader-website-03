@@ -3,16 +3,42 @@
 <head>
     <meta charset="UTF-8" />
     <title>shader-website-03</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Noto+Sans+JP:wght@300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
     <canvas id="canvas"></canvas>
 
     <div class="sections">
-        <section class="section" data-index="0"></section>
-        <section class="section" data-index="1"></section>
-        <section class="section" data-index="2"></section>
-        <section class="section" data-index="3"></section>
+        <section class="section" data-index="0">
+            <div class="section-content">
+                <span class="label">01</span>
+                <h2>Displacement</h2>
+                <p>波のように歪む、やさしい遷移。</p>
+            </div>
+        </section>
+        <section class="section" data-index="1">
+            <div class="section-content">
+                <span class="label">02</span>
+                <h2>RGB Glitch</h2>
+                <p>色が分離し、ノイズが走る。</p>
+            </div>
+        </section>
+        <section class="section" data-index="2">
+            <div class="section-content">
+                <span class="label">03</span>
+                <h2>Noise Fade</h2>
+                <p>ランダムな粒子が画面を侵食する。</p>
+            </div>
+        </section>
+        <section class="section" data-index="3">
+            <div class="section-content">
+                <span class="label">04</span>
+                <h2>Grid Split</h2>
+                <p>グリッドに分割され、空間が崩れる。</p>
+            </div>
+        </section>
     </div>
 
     <script type="module" src="/src/main.js"></script>

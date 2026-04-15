@@ -16,10 +16,14 @@ const observer = new IntersectionObserver((entries) => {
         if (entry.isIntersecting) {
             const index = parseInt(entry.target.dataset.index)
             triggerTransition(index)
+
+            // 全セクションからactiveを外して、現在のだけ付ける
+            sections.forEach(s => s.classList.remove('active'))
+            entry.target.classList.add('active')
         }
     })
 }, {
-    threshold: 0.5  // 50%以上見えたら発火
+    threshold: 0.5
 })
 
 sections.forEach(section => observer.observe(section))
