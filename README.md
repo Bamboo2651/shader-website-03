@@ -91,7 +91,7 @@ export default defineConfig({
 > **目標:** JS ↔ GLSL の橋渡しを理解する
 
 ### Step 4: エフェクト① displacement を実装する
-- [ ] Step 4: displacement エフェクト
+- [x] Step 4: displacement エフェクト
 
 > **目標:** Shadertoy のコードを自分のサイトに移植できる
 
